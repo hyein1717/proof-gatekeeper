@@ -1,0 +1,35 @@
+# Proof Gatekeeper — Fly.io deploy draft (prepared 2026-11-15, NOT deployed)
+# Rename `app` if taken; it must be globally unique on Fly.io.
+# Secrets are NEVER in this file: set them with
+#   fly secrets set AGENT_GAMES_HMAC_SECRET=... KURIER_API_KEY=...
+app = "proof-gatekeeper-putra"
+
+# iad (Ashburn) is the $2.19/mo reference region for shared-cpu-1x 256MB.
+# sin (Singapore) is closer to Jakarta but its price multiplier is unverified
+# — check `fly platform regions` / pricing before switching.
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+# The agent must NEVER auto-stop: a stopped machine scores -2 (offline) on
+# every task that arrives while it is down, and the 60s deadline leaves no
+# room for a cold start.
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/healthz"
+    timeout = "5s"
+
+[[mounts]]
+  source = "gatekeeper_data"
+  destination = "/app/data"
+  initial_size = "1GB"

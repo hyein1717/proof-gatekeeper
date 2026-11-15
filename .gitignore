@@ -1,0 +1,14 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Runtime state (seen proof refs, idempotent response cache)
+data/
+
+# Build output & deps
+dist/
+node_modules/
+
+# Logs
+*.log
